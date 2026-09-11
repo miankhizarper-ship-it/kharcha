@@ -1,35 +1,35 @@
+# Kharcha — Codemagic CI
+# First Android release-APK verification build (unsigned for distribution;
+# Gradle uses the template debug keystore until production signing is added).
+# The app lives in the kharcha/ subdirectory of this repository.
+
 workflows:
-kharcha-android-apk:
-name: Kharcha Android APK
-max_build_duration: 60
-instance_type: linux_x2
-
-```
-environment:
-  node: 22
-
-scripts:
-  - name: Install dependencies
-    script: |
-      npm ci
-
-  - name: Generate Android project
-    script: |
-      npx expo prebuild --platform android --clean
-
-  - name: Set Android SDK location
-    script: |
-      echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
-
-  - name: Run tests
-    script: |
-      npm test -- --runInBand
-
-  - name: Build Android release APK
-    script: |
-      cd android
-      ./gradlew assembleRelease
-
-artifacts:
-  - android/app/build/outputs/apk/release/*.apk
-```
+  kharcha-android-apk:
+    name: Kharcha Android APK
+    max_build_duration: 120
+    environment:
+      node: 24.19.0
+    scripts:
+      - name: Install npm dependencies
+        script: |
+          set -e
+          cd kharcha
+          npm ci
+      - name: Run Jest test suite
+        script: |
+          set -e
+          cd kharcha
+          npx jest --silent
+      - name: Generate Android project with Expo prebuild
+        script: |
+          set -e
+          cd kharcha
+          npx expo prebuild --platform android --clean
+      - name: Build Android release APK
+        script: |
+          set -e
+          cd kharcha/android
+          java -version
+          ./gradlew assembleRelease --no-daemon
+    artifacts:
+      - kharcha/android/app/build/outputs/apk/release/*.apk
