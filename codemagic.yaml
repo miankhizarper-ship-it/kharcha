@@ -1,0 +1,35 @@
+workflows:
+kharcha-android-apk:
+name: Kharcha Android APK
+max_build_duration: 60
+instance_type: linux_x2
+
+```
+environment:
+  node: 22
+
+scripts:
+  - name: Install dependencies
+    script: |
+      npm ci
+
+  - name: Generate Android project
+    script: |
+      npx expo prebuild --platform android --clean
+
+  - name: Set Android SDK location
+    script: |
+      echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+
+  - name: Run tests
+    script: |
+      npm test -- --runInBand
+
+  - name: Build Android release APK
+    script: |
+      cd android
+      ./gradlew assembleRelease
+
+artifacts:
+  - android/app/build/outputs/apk/release/*.apk
+```
