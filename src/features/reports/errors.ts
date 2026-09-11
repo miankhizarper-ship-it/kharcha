@@ -24,3 +24,22 @@ export function describeCategoryDetailLoadError(error: unknown): string {
   }
   return 'Could not load this report. Please try again.';
 }
+
+/**
+ * Thrown when generating or sharing the PDF export of a report fails —
+ * rendering (expo-print), staging the file, or opening the share sheet.
+ * The message is user-facing; internal causes never surface.
+ */
+export class ReportPdfExportError extends Error {
+  constructor(
+    message = 'Could not export the report as a PDF',
+    options?: ErrorOptions,
+  ) {
+    super(message, options);
+    this.name = 'ReportPdfExportError';
+  }
+}
+
+export function describeReportExportError(): string {
+  return 'Could not create the PDF. Please try again.';
+}

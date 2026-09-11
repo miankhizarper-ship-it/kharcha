@@ -1,7 +1,14 @@
+import {Ionicons} from '@expo/vector-icons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import React, {useCallback, useRef, useState} from 'react';
-import {Pressable, RefreshControl, StyleSheet, View} from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import {EmptyState, LoadingIndicator, Screen, Text} from '@/components/ui';
 import type {CategoryBudgetProgress} from '@/features/budgets/types';
@@ -20,7 +27,11 @@ import {IncomeSourcesCard} from '@/features/reports/components/IncomeSourcesCard
 import {InsightsCard} from '@/features/reports/components/InsightsCard';
 import {MonthOverMonthCard} from '@/features/reports/components/MonthOverMonthCard';
 import {PeriodSelector} from '@/features/reports/components/PeriodSelector';
-import {describeReportLoadError} from '@/features/reports/errors';
+import {
+  describeReportLoadError,
+  describeReportExportError,
+} from '@/features/reports/errors';
+import {exportReportPdf} from '@/features/reports/exportReportPdf';
 import {
   activePresetOf,
   currentMonthOf,
@@ -71,6 +82,8 @@ export function ReportsScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const [customSheetVisible, setCustomSheetVisible] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const loadSeq = useRef(0);
 
@@ -103,6 +116,53 @@ export function ReportsScreen() {
     void load();
   }, [load]);
   useFocusEffect(onFocusReload);
+
+  // Period labels are pure derivations; computed before the early-return so
+  // the export callback below can depend on them (hooks come first).
+  const activePreset = activePresetOf(selection, now);
+  const periodLabel = formatReportSelectionLabel(selection, now);
+  const previousMonthLabel =
+    selection.kind === 'month'
+      ? formatReportSelectionLabel(
+          {
+            kind: 'month',
+            ...previousMonth(selection.year, selection.month),
+          },
+          now,
+        )
+      : undefined;
+
+  const handleExportPdf = useCallback(() => {
+    if (!snapshot || exporting) {
+      return;
+    }
+    setExporting(true);
+    setExportError(null);
+    (async () => {
+      try {
+        await exportReportPdf({
+          snapshot,
+          selection,
+          currency,
+          periodLabel,
+          previousLabel: previousMonthLabel,
+          generatedAt: now,
+        });
+      } catch {
+        setExportError(describeReportExportError());
+      } finally {
+        setExporting(false);
+      }
+    })();
+  }, [
+    snapshot,
+    exporting,
+    selection,
+    currency,
+    periodLabel,
+    previousMonthLabel,
+    now,
+  ]);
 
   const handleSelectPreset = useCallback(
     (preset: ReportPreset) => {
@@ -188,9 +248,6 @@ export function ReportsScreen() {
     );
   }
 
-  const activePreset = activePresetOf(selection, now);
-  const periodLabel = formatReportSelectionLabel(selection, now);
-
   const canGoPrevious =
     selection.kind === 'month' &&
     (selection.year > YEAR_MIN || selection.month > MONTH_MIN);
@@ -223,14 +280,55 @@ export function ReportsScreen() {
         />
       }
     >
-      <Text variant="display">Reports</Text>
-      <Text
-        variant="body"
-        color="textMuted"
-        style={{marginTop: spacing.xs, marginBottom: spacing.sm}}
-      >
-        Insights from your spending, computed on this device.
-      </Text>
+      <View style={styles.headerRow}>
+        <View style={styles.headerText}>
+          <Text variant="display">Reports</Text>
+          <Text
+            variant="body"
+            color="textMuted"
+            style={{marginTop: spacing.xs, marginBottom: spacing.sm}}
+          >
+            Insights from your spending, computed on this device.
+          </Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Export report as PDF"
+          accessibilityState={{
+            disabled: !snapshot || exporting,
+            busy: exporting,
+          }}
+          disabled={!snapshot || exporting}
+          onPress={handleExportPdf}
+          style={({pressed}) => [
+            styles.exportButton,
+            {
+              borderColor: colors.border,
+              backgroundColor: pressed ? colors.surfaceMuted : colors.surface,
+              opacity: !snapshot || exporting ? 0.5 : 1,
+            },
+          ]}
+        >
+          {exporting ? (
+            <ActivityIndicator size="small" color={colors.primary} />
+          ) : (
+            <Ionicons
+              name="download-outline"
+              size={22}
+              color={colors.primary}
+            />
+          )}
+        </Pressable>
+      </View>
+      {exportError ? (
+        <Text
+          variant="caption"
+          color="danger"
+          style={{marginTop: spacing.xs, marginBottom: spacing.sm}}
+        >
+          {exportError}
+        </Text>
+      ) : null}
 
       <PeriodSelector
         active={activePreset}
@@ -315,17 +413,7 @@ export function ReportsScreen() {
                 navigation.navigate('AddIncome', {incomeId: id});
               }
             }}
-            previousLabel={
-              selection.kind === 'month'
-                ? formatReportSelectionLabel(
-                    {
-                      kind: 'month',
-                      ...previousMonth(selection.year, selection.month),
-                    },
-                    now,
-                  )
-                : undefined
-            }
+            previousLabel={previousMonthLabel}
           />
 
           {budget && selection.kind === 'month' ? (
@@ -341,6 +429,8 @@ export function ReportsScreen() {
             <MonthOverMonthCard
               comparison={snapshot.previousPeriodComparison}
               currentLabel={periodLabel}
+              // Required string; recomputed inline so TS sees the month
+              // narrowing (the hoisted label is string | undefined).
               previousLabel={formatReportSelectionLabel(
                 {
                   kind: 'month',
@@ -495,6 +585,23 @@ function SectionEmpty({title}: {title: string}) {
 }
 
 const styles = StyleSheet.create({
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  headerText: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  exportButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   fillCenter: {
     marginTop: 96,
     alignItems: 'center',
