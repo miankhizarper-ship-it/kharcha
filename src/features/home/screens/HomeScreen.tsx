@@ -144,7 +144,6 @@ export function HomeScreen() {
   return (
     <Screen
       scroll
-      style={styles.grow}
       contentContainerStyle={{paddingBottom: spacing.xl + 96}}
       refreshControl={
         <RefreshControl
@@ -465,7 +464,6 @@ export function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  grow: {flex: 1},
   fillCenter: {
     marginTop: spacing.xl * 3,
     alignItems: 'center',
