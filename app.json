@@ -13,6 +13,7 @@
       "package": "com.kharcha",
       "versionCode": 1,
       "allowBackup": false,
+      "permissions": ["INTERNET", "REQUEST_INSTALL_PACKAGES"],
       "adaptiveIcon": {
         "backgroundColor": "#1E5D4B",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -23,6 +24,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "updateApiBaseUrl": "https://kharcha-web.miankhizar-per.workers.dev"
     },
     "experiments": {
       "tsconfigPaths": true

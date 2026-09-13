@@ -6,6 +6,7 @@ import {Text} from '@/components/ui';
 import {openDatabase} from '@/database';
 import {hydrateSettingsFromDatabase} from '@/features/settings/bootstrap';
 import {processDueRecurringTransactions} from '@/features/recurring/processing';
+import {AppUpdateManager} from '@/features/update/AppUpdateManager';
 import {RootNavigator} from '@/navigation/RootNavigator';
 import {ThemeProvider, useTheme} from '@/theme';
 
@@ -16,6 +17,9 @@ function AppShell() {
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <RootNavigator />
+      {/* In-app update check (once per launch) + update dialog overlay.
+          Entirely fire-and-forget: it can never block or break startup. */}
+      <AppUpdateManager />
     </>
   );
 }
