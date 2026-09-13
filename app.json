@@ -2,7 +2,7 @@
   "expo": {
     "name": "Kharcha",
     "slug": "kharcha",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -11,9 +11,15 @@
     },
     "android": {
       "package": "com.kharcha",
-      "versionCode": 1,
+      "versionCode": 3,
       "allowBackup": false,
-      "permissions": ["INTERNET", "REQUEST_INSTALL_PACKAGES"],
+      "permissions": [
+        "INTERNET",
+        "REQUEST_INSTALL_PACKAGES",
+        "POST_NOTIFICATIONS",
+        "SCHEDULE_EXACT_ALARM",
+        "RECEIVE_BOOT_COMPLETED"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#1E5D4B",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -34,6 +40,7 @@
     "plugins": [
       "expo-font",
       "expo-sharing",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {

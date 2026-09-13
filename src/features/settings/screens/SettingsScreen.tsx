@@ -12,6 +12,7 @@ import {
 import {CurrencyPickerSheet} from '@/features/settings/components/CurrencyPickerSheet';
 import {CURRENCY_OPTIONS} from '@/features/settings/currencies';
 import {useSettingsFeature} from '@/features/settings/useSettingsFeature';
+import {NotificationSettingsSection} from '@/features/notifications/components/NotificationSettingsSection';
 import {useTheme} from '@/theme';
 import {THEME_MODES} from '@/theme/resolveMode';
 
@@ -137,6 +138,11 @@ export function SettingsScreen() {
           System follows the device light or dark setting automatically.
         </Text>
       </Card>
+
+      {/* Smart Notifications (local-only): daily reminder, budget alerts,
+          recurring reminders, monthly summary. Manages its own database
+          hook; fails silent if the local database is unavailable. */}
+      <NotificationSettingsSection />
 
       <Text variant="title" style={{marginTop: spacing.lg}}>
         About

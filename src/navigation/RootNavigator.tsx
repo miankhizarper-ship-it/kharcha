@@ -15,6 +15,7 @@ import {ImportCsvScreen} from '@/features/backup/screens/ImportCsvScreen';
 import {BudgetScreen} from '@/features/budgets/screens/BudgetScreen';
 import {CategoriesScreen} from '@/features/categories/screens/CategoriesScreen';
 import {CategoryDetailScreen} from '@/features/reports/screens/CategoryDetailScreen';
+import {NotificationTapHandler} from '@/features/notifications/NotificationTapHandler';
 import {RecurringScreen} from '@/features/recurring/screens/RecurringScreen';
 import {RecurringFormScreen} from '@/features/recurring/screens/RecurringFormScreen';
 import {SettingsScreen} from '@/features/settings/screens/SettingsScreen';
@@ -173,6 +174,10 @@ export function RootNavigator() {
             }}
           />
         </Stack.Navigator>
+        {/* Notification tap navigation (daily reminder → Add Expense,
+            budget alerts → Budget, recurring → Recurring, summary →
+            Reports). Must live inside the container; renders nothing. */}
+        <NotificationTapHandler />
       </NavigationContainer>
     </SafeAreaProvider>
   );

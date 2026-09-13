@@ -6,6 +6,7 @@ import {Text} from '@/components/ui';
 import {openDatabase} from '@/database';
 import {hydrateSettingsFromDatabase} from '@/features/settings/bootstrap';
 import {processDueRecurringTransactions} from '@/features/recurring/processing';
+import {NotificationOrchestrator} from '@/features/notifications/NotificationOrchestrator';
 import {AppUpdateManager} from '@/features/update/AppUpdateManager';
 import {RootNavigator} from '@/navigation/RootNavigator';
 import {ThemeProvider, useTheme} from '@/theme';
@@ -20,6 +21,10 @@ function AppShell() {
       {/* In-app update check (once per launch) + update dialog overlay.
           Entirely fire-and-forget: it can never block or break startup. */}
       <AppUpdateManager />
+      {/* Smart notifications: idempotent schedule sync + budget threshold
+          evaluation while the app is open. Fire-and-forget; never requests
+          permission and never duplicates schedules. */}
+      <NotificationOrchestrator />
     </>
   );
 }

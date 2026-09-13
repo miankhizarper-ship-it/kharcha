@@ -62,15 +62,17 @@ Key properties:
 
 ---
 
-## 2. Current state — DO NOT BUMP YET
+## 2. Current state — 1.2.0 (Smart Notifications release)
 
 ```
-version:      1.0.0
-versionCode:  1          (app.json → expo.android.versionCode)
+version:      1.2.0
+versionCode:  3          (app.json → expo.android.versionCode)
 ```
 
-`app.json` intentionally still says **1.0.0 / 1**. Bump it only when you
-actually release the new APK (step 3 below). Never reuse an old versionCode.
+`app.json` now says **1.2.0 / 3** — bumped for the Smart Notifications
+release (local-only `expo-notifications` feature). Ship it by building the
+APK (step 3.2), hosting it (3.3), and pointing the backend at it (3.4) —
+see the versionCode ledger in section 4. Never reuse an old versionCode.
 
 ---
 
@@ -195,7 +197,8 @@ curl -s https://kharcha-web.miankhizar-per.workers.dev/api/app-version
 | --- | --- | --- |
 | 1.0.0 | 1 | production (no in-app updater) |
 | 1.1.0 | 2 | first release with the update checker |
-| next   | 3 | always `last + 1`, never reuse |
+| 1.2.0 | 3 | Smart Notifications (local-only, expo-notifications) |
+| next   | 4 | always `last + 1`, never reuse |
 
 Every release: bump BOTH `version` and `versionCode` in `app.json`, build,
 host, insert/publish the new release config, verify with the curl above.
